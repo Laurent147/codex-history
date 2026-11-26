@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from app import History
-from usage import UsageReader, rates_for
+from usage import UsageReader, rates_for, token_cost
 from test_app import fixture, IDS
 
 
@@ -13,6 +13,12 @@ def event(input_count, cached, output, reasoning=0):
         'total_token_usage': {'input_tokens': input_count, 'cached_input_tokens': cached,
                               'output_tokens': output, 'reasoning_output_tokens': reasoning,
                               'total_tokens': input_count + output}}}}
+
+
+def request(identity, input_count, cached, output, cumulative=None):
+    usage = event(input_count, cached, output)['payload']['info']['total_token_usage']
+    return {'type': 'token_usage_record', 'payload': {
+        'response_id': identity, 'usage': usage, 'thread_token_usage': cumulative or usage}}
 
 
 class UsageTests(unittest.TestCase):
@@ -74,6 +80,54 @@ class UsageTests(unittest.TestCase):
     def test_snapshot_alias_and_unknown_rates(self):
         self.assertEqual(rates_for('gpt-5.5-2026-04-23'), rates_for('gpt-5.5'))
         self.assertIsNone(rates_for('gpt-5.5-mystery'))
+
+    def test_compaction_counter_divergence_does_not_hide_cost(self):
+        # Reproduce two monotonic counters with different baselines. Mixing them
+        # used to produce false resets and remove the whole chat's cost.
+        self.write([request('r1', 1000, 800, 100), event(1000, 800, 100),
+                    request('r2', 2000, 1600, 200,
+                            event(3000, 2400, 300)['payload']['info']['total_token_usage']),
+                    event(2500, 2000, 250)])
+        self.row['tokens_used'] = 2750
+        result = self.reader.read(self.row)
+        self.assertEqual(result['total_tokens'], 3300)
+        self.assertEqual(result['database_total_tokens'], 2750)
+        self.assertEqual(result['source'], 'Individual request records')
+        self.assertAlmostEqual(result['cost_usd'], .0132)
+
+    def test_identified_request_duplicates_and_model_switch(self):
+        r1 = request('r1', 1000, 800, 100)
+        self.write([{'type': 'turn_context', 'payload': {'model': 'gpt-5.4'}},
+                    r1, r1, {'type': 'turn_context', 'payload': {'model': 'gpt-5.5'}},
+                    request('r2', 1000, 800, 100,
+                            event(2000, 1600, 200)['payload']['info']['total_token_usage'])])
+        result = self.reader.read(self.row)
+        self.assertEqual(result['total_tokens'], 2200)
+        self.assertAlmostEqual(result['cost_usd'], .0066)
+        self.assertEqual(len(result['models']), 2)
+
+    def test_partial_request_ledger_falls_back_to_complete_events(self):
+        self.write([event(1000, 800, 100),
+                    request('r2', 1000, 800, 100,
+                            event(2000, 1600, 200)['payload']['info']['total_token_usage']),
+                    event(2000, 1600, 200)])
+        result = self.reader.read(self.row)
+        self.assertEqual(result['source'], 'Legacy usage snapshots')
+        self.assertEqual(result['total_tokens'], 2200)
+        self.assertAlmostEqual(result['cost_usd'], .0088)
+
+    def test_long_context_surcharge_only_uses_individual_request_size(self):
+        self.row['model'] = 'gpt-6.1-sol'
+        self.write([request('r1', 300000, 200000, 10000)])
+        result = self.reader.read(self.row)
+        # 0.1M*$4 uncached + 0.2M*$0.20 cached + 0.01M*$15 output.
+        self.assertAlmostEqual(result['cost_usd'], .59)
+        self.assertEqual(result['long_context_requests'], 1)
+        self.write([event(300000, 200000, 10000)])
+        self.assertAlmostEqual(self.reader.read(self.row)['cost_usd'], .32)
+        self.assertTrue(self.reader.read(self.row)['base_rates_only'])
+        usage = event(272000, 200000, 10000)['payload']['info']['total_token_usage']
+        self.assertAlmostEqual(token_cost('gpt-6.1-sol', usage, 272000), .264)
 
     def test_summary_follows_filters_and_partial_coverage(self):
         with tempfile.TemporaryDirectory() as directory:

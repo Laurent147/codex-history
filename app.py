@@ -144,6 +144,7 @@ class History:
             'cost_usd': sum(r['cost_usd'] or 0 for r in results),
             'tokens_available': sum(r['total_tokens'] is not None for r in results),
             'cost_available': sum(r['cost_usd'] is not None for r in results),
+            'priced_tokens': sum((r['total_tokens'] or 0) for r in results if r['cost_usd'] is not None),
             'sessions': len(results),
         }
         return {'sessions': results, 'directories': directories, 'total': len(rows),
