@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Codex History</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><div class="brand"><span class="logo" aria-hidden="true">⌘</span><div><h1>Codex History</h1><p>Find the conversation. Clear the clutter.</p></div></div><button id="refresh">Refresh</button></header>
+    <section class="filters" aria-label="Filter conversations">
+      <label class="search">Search<input id="q" type="search" placeholder="Title, first message, directory or session ID" autofocus></label>
+      <label class="directory">Directory<select id="directory"><option value="">All directories</option></select></label>
+      <label>Status<select id="status"><option value="active">Unarchived</option><option value="archived">Archived</option><option value="all">All sessions</option></select></label>
+      <label>Date field<select id="date_field"><option value="updated">Last updated</option><option value="created">Created</option></select></label>
+      <label>From<input id="after" type="date"></label><label>Through<input id="before" type="date"></label>
+      <div class="options"><label><input id="fulltext" type="checkbox"> Search full conversations</label><label><input id="subagents" type="checkbox"> Include subagents</label><button id="reset" class="text-button">Clear filters</button></div>
+    </section>
+    <section class="usage-summary" aria-label="Usage for matching conversations" aria-live="polite">
+      <div><span>Total tokens · matching chats</span><strong id="total-tokens">—</strong><small id="token-coverage">Loading usage…</small></div>
+      <div><span>Hypothetical API cost · USD</span><strong id="total-cost">—</strong><small id="cost-coverage">Standard base rates; not your subscription bill</small></div>
+    </section>
+    <details class="estimate-help"><summary>How the estimate works</summary><p>Uncached input × input rate + cached input × cache rate + output × output rate. Cached tokens are already part of input; reasoning tokens are already part of output. Each usage increase is priced using the model recorded at that point.</p><p>Uses standard base text-token prices; excludes long-context uplifts, fast/priority tiers, regional premiums, tool fees and taxes. Totals cover the matching chats and shrink when you filter or delete history. Forked chats can include inherited usage. Unavailable estimates are excluded from the cost subtotal.</p><p><a href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noreferrer">OpenAI API pricing</a> · Rates checked <span id="pricing-date">—</span>. Rates are stored locally; the app makes no external requests.</p></details>
+    <div class="toolbar"><div><strong id="count">Loading…</strong><span id="selected"></span></div><div class="actions"><button id="select-all">Select all matches</button><button id="clear-selection" disabled>Clear selection</button><button id="delete" class="danger" disabled>Delete selected</button></div></div>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <div class="table-wrap"><table><thead><tr><th class="check"><input id="master" type="checkbox" aria-label="Select all matching sessions"></th><th><button class="sort" data-sort="title">Conversation</button></th><th><button class="sort" data-sort="cwd">Directory</button></th><th><button class="sort" data-sort="updated_at">Updated ↓</button></th><th><button class="sort" data-sort="created_at">Created</button></th><th><button class="sort" data-sort="total_tokens">Tokens</button></th><th><button class="sort" data-sort="cost_usd">Est. API cost</button></th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" hidden>No conversations match these filters.</div></div>
+    <footer><span id="home"></span><span>Local only · Dates use your local timezone · Deletions use Codex CLI</span></footer>
+  </main>
+  <dialog id="preview"><div class="dialog-header"><div><h2 id="preview-title">Conversation</h2><code id="preview-id"></code></div><button id="close-preview" aria-label="Close conversation">Close</button></div><div id="messages"></div></dialog>
+  <dialog id="confirmation"><h2 id="confirm-title">Delete conversations?</h2><p>This permanently deletes the selected chat history through Codex. Project files are unaffected.</p><ul id="delete-list"></ul><p id="delete-summary"></p><div class="dialog-actions"><button id="cancel-delete">Cancel</button><button id="confirm-delete" class="danger">Delete permanently</button></div></dialog>
+  <template id="row-template"><tr><td class="check"><input type="checkbox" class="row-select"></td><td class="conversation"><button class="open-title"></button><p class="first-message"></p><code class="session-id"></code><span class="badge" hidden>Archived</span></td><td><span class="cwd"></span><small class="branch"></small></td><td class="updated date"></td><td class="created date"></td><td class="usage-cell"><strong class="token-total"></strong><small class="token-breakdown"></small></td><td class="usage-cell"><strong class="cost"></strong><small class="cost-note"></small></td><td><div class="row-actions"><button class="view">View</button><button class="resume">Copy resume</button><button class="delete-one text-danger">Delete</button></div></td></tr></template>
+</body>
+</html>

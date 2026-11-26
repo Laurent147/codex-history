@@ -1,0 +1,21 @@
+__pycache__/
+.test-data/
+*.pyc
+
+# Local credentials and agent state
+.env
+.env.*
+!.env.example
+.aws/
+.codex/
+.agents/
+
+# History databases, exports, logs, and screenshots can contain private chats
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.jsonl
+*.jsonl.zst
+*.log
+output/
