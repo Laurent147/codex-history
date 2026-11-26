@@ -11,7 +11,7 @@ Open **http://127.0.0.1:8765**. Run from a terminal where `codex` is on PATH to 
 - Search titles, first messages, IDs, directories, models, and branches.
 - Enable **Search full conversations** to search user/assistant message bodies too (slower on large histories).
 - Filter by directory, archive status, and inclusive creation/update date range. Subagents are hidden by default.
-- View conversations, sort columns, and copy `codex resume <id>` commands.
+- View conversations, sort columns, and copy `cd '<directory>'; codex resume <id>` commands to resume in the chat's working directory.
 - See sortable total-token and hypothetical API-cost columns, with totals for the current filters.
 - Select individual chats or **all matching results**, then delete after reviewing the exact selection. Changing filters clears selection. Maximum 500 chats per deletion.
 

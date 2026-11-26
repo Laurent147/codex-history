@@ -241,9 +241,14 @@ def handler_for(history):
                     self.respond(200, history.detail(session_id))
                 elif url.path == '/api/token':
                     self.respond(200, {'token': token})
-                elif url.path in ('/', '/app.js', '/style.css'):
-                    name = 'index.html' if url.path == '/' else url.path[1:]
-                    mime = {'index.html': 'text/html', 'app.js': 'text/javascript', 'style.css': 'text/css'}[name]
+                elif url.path == '/api/pricing':
+                    self.respond(200, {**{k: v for k, v in PRICING.items() if k != 'models'}, 'models': PRICING['models']})
+                elif url.path in ('/', '/pricing', '/app.js', '/pricing.js', '/style.css', '/pricing.css'):
+                    names = {'/': 'index.html', '/pricing': 'pricing.html', '/app.js': 'app.js',
+                             '/pricing.js': 'pricing.js', '/style.css': 'style.css', '/pricing.css': 'pricing.css'}
+                    name = names[url.path]
+                    mime = {'index.html': 'text/html', 'pricing.html': 'text/html', 'app.js': 'text/javascript',
+                            'pricing.js': 'text/javascript', 'style.css': 'text/css', 'pricing.css': 'text/css'}[name]
                     self.respond(200, (ROOT / 'static' / name).read_bytes(), mime + '; charset=utf-8')
                 else:
                     self.respond(404, {'error': 'Not found'})

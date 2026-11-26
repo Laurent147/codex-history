@@ -54,8 +54,9 @@ function render() {
     tr.querySelector('.cost').title = [usage.source, ...usage.models.map(m => `${m.model}: ${money(m.cost_usd)}`), usage.note].filter(Boolean).join('\n');
     tr.querySelector('.open-title').onclick = tr.querySelector('.view').onclick = () => preview(row);
     tr.querySelector('.resume').onclick = async () => {
-      try { await navigator.clipboard.writeText(`codex resume ${row.id}`); notice('Resume command copied. Paste it in your terminal.'); }
-      catch { notice(`Copy this command: codex resume ${row.id}`); }
+      const command = (row.cwd ? `cd -- '${row.cwd.replace(/'/g, "'\\''")}'; ` : '') + `codex resume ${row.id}`;
+      try { await navigator.clipboard.writeText(command); notice('Resume command copied. Paste it in your terminal.'); }
+      catch { notice(`Copy this command: ${command}`); }
     };
     tr.querySelector('.delete-one').disabled = deleting || loading;
     tr.querySelector('.delete-one').onclick = () => confirmDelete([row.id]);

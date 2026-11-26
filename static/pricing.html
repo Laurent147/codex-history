@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Model pricing · Codex History</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/pricing.css">
+  <script src="/pricing.js" defer></script>
+</head>
+<body>
+  <main class="pricing-page">
+    <header>
+      <div class="brand"><span class="logo" aria-hidden="true">⌘</span><div><h1>Model pricing</h1><p>Reference rates used by the cost estimates.</p></div></div>
+      <nav aria-label="Primary navigation"><a class="nav-link" href="/">History</a><a class="nav-link active" href="/pricing">Pricing</a></nav>
+    </header>
+    <section class="pricing-intro">
+      <div><span class="eyebrow">Standard API rates</span><h2>Compare cost per model</h2><p id="basis">Loading pricing…</p></div>
+      <div class="pricing-meta"><span>Rates checked</span><strong id="checked-at">—</strong><a id="source" href="#" target="_blank" rel="noreferrer">Open pricing source</a></div>
+    </section>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <section class="pricing-card" aria-label="Model pricing table">
+      <div class="table-wrap"><table class="pricing-table"><thead><tr><th>Model</th><th>Input<br><small>per 1M tokens</small></th><th>Cached input<br><small>per 1M tokens</small></th><th>Output<br><small>per 1M tokens</small></th><th>Long context</th><th>Source</th></tr></thead><tbody id="pricing-rows"></tbody></table><div id="pricing-empty" hidden>No pricing data found.</div></div>
+    </section>
+    <section class="pricing-notes"><h2>How these rates are used</h2><p>Estimates use uncached input × input rate + cached input × cache rate + output × output rate. Cached tokens are already included in input totals, and reasoning tokens are included in output totals.</p><p>Long-context uplifts apply only when individual request sizes are available and exceed the model’s threshold. Snapshot-only sessions use base rates. Estimates exclude fast or priority tiers, regional premiums, tool fees, taxes, and your subscription billing.</p></section>
+    <footer><span>Local only · Rates are read from pricing.json</span><a class="nav-link" href="/">Back to history</a></footer>
+  </main>
+</body>
+</html>
